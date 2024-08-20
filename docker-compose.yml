@@ -1,0 +1,96 @@
+# This docker compose file only use for development environment
+
+services:
+  dragonfly:
+    image: docker.dragonflydb.io/dragonflydb/dragonfly
+    command: dragonfly --cluster_mode=emulated --lock_on_hashtags
+    ulimits:
+      memlock: -1
+    volumes:
+      - ./.docker/dragonfly:/data
+    networks:
+      - data-net
+
+  mongo:
+    image: mongo:8.0.0-rc17
+    command: mongod --quiet --logpath /dev/null
+    ports:
+      - 27024:27017
+    volumes:
+      - ./.docker/mongo:/data/db
+    networks:
+      - data-net
+
+  web:
+    image: oven/bun:1.1
+    working_dir: /app
+    command: bash -c "bun i && bun dev --host"
+    volumes:
+      - ./web:/app
+    ports:
+      - 5173:5173
+    networks:
+      - web-net
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.firestick-web.rule=Host(`firestick-ui.docker.localhost`)
+
+  server:
+    image: node:22
+    working_dir: /app
+    command: bash -c "yarn && yarn dev"
+    volumes:
+      - ./server:/app
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./docker-compose.yml:/app/docker-compose.yml
+    ports:
+      - 3000:3000
+    networks:
+      - data-net
+      - web-net
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.firestick.rule=Host(`firestick.docker.localhost`)
+
+  traefik:
+    image: traefik:v3.1
+    command:
+      - "--ping=true"
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.swarm.network=proxy"
+      - "--providers.swarm.exposedByDefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--certificatesresolvers.letsencrypt.acme.httpchallenge=true"
+      - "--certificatesresolvers.letsencrypt.acme.storage=/traefik/acme.json"
+      - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
+    ports:
+      - 80:80
+      - 443:443
+      - 8080:8080
+    volumes:
+      - ./.docker/traefik:/traefik
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - web-net
+      - proxy
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.traefik.entrypoints=web
+      - traefik.http.routers.traefik.service=api@internal
+      - traefik.http.services.traefik.loadbalancer.server.port=:8080
+
+networks:
+  data-net:
+    driver: bridge
+  web-net:
+    driver: bridge
+  proxy:
+    name: proxy
+    driver: overlay
+    attachable: true
