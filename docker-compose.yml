@@ -24,7 +24,7 @@ services:
   web:
     image: oven/bun:1.1
     working_dir: /app
-    command: bash -c "bun i && bun dev --host"
+    command: bash -c "bun i && bun dev --host --port 5173"
     environment:
       - VITE_SERVER_URL=http://localhost:3000
     volumes:
