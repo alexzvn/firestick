@@ -10,10 +10,13 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@elysiajs/eden": "^1.1.2",
     "vue": "^3.4.37"
   },
   "devDependencies": {
+    "@types/node": "^22.4.2",
     "@vitejs/plugin-vue": "^5.1.2",
+    "elysia": "^1.1.7",
     "typescript": "^5.5.3",
     "vite": "^5.4.1",
     "vue-tsc": "^2.0.29"

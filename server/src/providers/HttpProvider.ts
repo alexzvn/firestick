@@ -2,6 +2,7 @@ import { createServer } from 'node:http'
 import { defineProvider } from '~/application/Application'
 import ElysiaProvider from './ElysiaProvider'
 import ConfigProvider from './ConfigProvider'
+import LoggerProvider from './LoggerProvider'
 
 export default defineProvider(({ service, on }) => {
 
@@ -35,13 +36,19 @@ export default defineProvider(({ service, on }) => {
     }))
   })
 
-  on('start', () => http.listen(service.config.app.port))
+  on('start', async () => {
+    http.listen(service.config.app.port, () => {
+      service.logger.info(`Listening on port ${service.config.app.port}`)
+    })
+  })
 
   on('stop', async () => {
     await new Promise((resolve, reject) => {
       http.close(e => e ? reject(e) : resolve(0))
     })
+
+    service.logger.info('Http server is stopped')
   })
 
   return { http }
-}, ElysiaProvider, ConfigProvider)
+}, ElysiaProvider, ConfigProvider, LoggerProvider)

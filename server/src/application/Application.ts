@@ -154,7 +154,7 @@ export class Application <Services extends Pair = Pair> {
   start<const Callback extends undefined|(() => unknown)>(callback?: Callback) {
     this._state = 'starting'
 
-    type Return = Callback extends undefined ? Promise<Application<Services>> : Application<Services>
+    type Return = Callback extends {} ? Application<Services> : Promise<Application<Services>>
 
     const application: Application = {
       on: this.on.bind(this),
@@ -226,7 +226,7 @@ export class Application <Services extends Pair = Pair> {
     const handlers = app._handlers[key] ?? []
 
     if (handlers && handlers.length) {
-      return Promise.all(handlers.map(handler => handler.call(app)))
+      return Promise.allSettled(handlers.map(handler => handler.call(app)))
     }
   }
 

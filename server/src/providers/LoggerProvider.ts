@@ -11,8 +11,5 @@ export default defineProvider(({ on }) => {
 
   logger.info('Logger initialized')
 
-  on('started', () => logger.info('Application started'))
-  on('stop', () => logger.info('Stopping application'))
-
   return { logger }
 })
