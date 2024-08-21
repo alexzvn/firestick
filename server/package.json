@@ -3,7 +3,6 @@
   "module": "index.ts",
   "type": "module",
   "scripts": {
-    "prepare": "tsup --dts-only",
     "dev": "tsx watch --env-file=.env.dev index.ts"
   },
   "dependencies": {
@@ -24,8 +23,7 @@
   "devDependencies": {
     "@types/bun": "latest",
     "@types/mime-types": "^2.1.4",
-    "@types/ssh2": "^1.15.1",
-    "tsup": "^8.2.4"
+    "@types/ssh2": "^1.15.1"
   },
   "peerDependencies": {
     "typescript": "^5.5.4"
